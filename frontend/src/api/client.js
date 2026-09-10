@@ -21,4 +21,30 @@ api.interceptors.response.use(
   }
 );
 
+// FastAPI's error shape is NOT always a plain string: custom HTTPException
+// raises give a string `detail`, but Pydantic validation failures (422 --
+// bad phone format, weak password, etc.) return `detail` as an ARRAY of
+// error objects instead. Every catch block in this app used to do
+// `push(err.response?.data?.detail || fallback, "error")` directly -- the
+// moment a 422 array hit that toast, React tried to render an object as a
+// text child and crashed the whole page white with no error boundary to
+// catch it. This is the one place that should ever read err.response.data.
+export function getErrorMessage(err, fallback = "حصل خطأ، جرب تاني") {
+  const detail = err?.response?.data?.detail;
+  if (!detail) return fallback;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail) && detail.length > 0) {
+    const first = detail[0];
+    let msg = typeof first === "string" ? first : first?.msg;
+    if (typeof msg === "string") {
+      msg = msg.replace(/^Value error,\s*/i, "").trim();
+      // Raw Pydantic type/pattern messages are English internals ("String
+      // should match pattern...") that don't help a customer -- only surface
+      // messages that are actually our own (Arabic) validator text.
+      if (msg && /[\u0600-\u06FF]/.test(msg)) return msg;
+    }
+  }
+  return fallback;
+}
+
 export default api;

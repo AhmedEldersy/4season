@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../../api/client";
+import api, { getErrorMessage } from "../../api/client";
 import { useToastStore } from "../../store/toastStore";
 import EmptyState from "../../components/EmptyState";
 import { formatEGP } from "../../lib/format";
@@ -48,7 +48,7 @@ export default function DeliveryAreas() {
       resetForm();
       load();
     } catch (err) {
-      push(err.response?.data?.detail || "حصل خطأ", "error");
+      push(getErrorMessage(err, "حصل خطأ"), "error");
     }
   };
 
@@ -68,7 +68,7 @@ export default function DeliveryAreas() {
       });
       load();
     } catch (err) {
-      push(err.response?.data?.detail || "تعذر تحديث المنطقة", "error");
+      push(getErrorMessage(err, "تعذر تحديث المنطقة"), "error");
     }
   };
 
@@ -80,7 +80,7 @@ export default function DeliveryAreas() {
       load();
     } catch (err) {
       // Areas with existing orders can't be deleted (preserves order history) -- deactivate instead.
-      push(err.response?.data?.detail || "تعذر الحذف", "error");
+      push(getErrorMessage(err, "تعذر الحذف"), "error");
     }
   };
 

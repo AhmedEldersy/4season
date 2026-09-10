@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import api, { API_URL } from "../api/client";
+import api, { API_URL, getErrorMessage } from "../api/client";
 import { useAuthStore } from "../store/authStore";
 import { useToastStore } from "../store/toastStore";
 import StatusBadge from "../components/StatusBadge";
@@ -50,7 +50,7 @@ export default function OrderTracking() {
       setOrder(res.data);
       push("تم إلغاء الطلب", "success");
     } catch (err) {
-      push(err.response?.data?.detail || "تعذر إلغاء الطلب", "error");
+      push(getErrorMessage(err, "تعذر إلغاء الطلب"), "error");
       load();
     } finally {
       setCancelling(false);

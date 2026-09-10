@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import api, { API_URL } from "../api/client";
+import api, { API_URL, getErrorMessage } from "../api/client";
 import { useAuthStore } from "../store/authStore";
 import { useToastStore } from "../store/toastStore";
 import logoIcon from "../assets/brand/logo-icon-transparent.png";
@@ -31,7 +31,7 @@ export default function Login() {
         navigate(location.state?.from?.pathname || "/");
       }
     } catch (err) {
-      push(err.response?.data?.detail || "الإيميل أو الباسورد غلط", "error");
+      push(getErrorMessage(err, "الإيميل أو الباسورد غلط"), "error");
     } finally {
       setLoading(false);
     }

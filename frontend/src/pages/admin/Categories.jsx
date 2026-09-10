@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../../api/client";
+import api, { getErrorMessage } from "../../api/client";
 import { useToastStore } from "../../store/toastStore";
 
 export default function Categories() {
@@ -39,7 +39,7 @@ export default function Categories() {
       push("تم الحذف", "success");
       load();
     } catch (err) {
-      push(err.response?.data?.detail || "تعذر الحذف — تأكد إن الصنف فاضي من المنتجات", "error");
+      push(getErrorMessage(err, "تعذر الحذف — تأكد إن الصنف فاضي من المنتجات"), "error");
     }
   };
 

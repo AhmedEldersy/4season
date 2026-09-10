@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../../api/client";
+import api, { getErrorMessage } from "../../api/client";
 import { useAdminRealtimeStore } from "../../store/adminRealtimeStore";
 import { useToastStore } from "../../store/toastStore";
 import StatusBadge from "../../components/StatusBadge";
@@ -83,7 +83,7 @@ export default function AdminOrders() {
       setOrders((prev) => prev.map((o) => (o.id === orderId ? res.data : o)));
       push(`تم تحديث الطلب إلى: ${statusLabelFor(status, res.data.order_type)}`, "success");
     } catch (err) {
-      push(err.response?.data?.detail || "تعذر تحديث حالة الطلب", "error");
+      push(getErrorMessage(err, "تعذر تحديث حالة الطلب"), "error");
     }
   };
 

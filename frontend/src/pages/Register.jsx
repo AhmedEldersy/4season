@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api, { API_URL } from "../api/client";
+import api, { API_URL, getErrorMessage } from "../api/client";
 import { useAuthStore } from "../store/authStore";
 import { useToastStore } from "../store/toastStore";
 import { Field } from "./Login";
@@ -33,7 +33,7 @@ export default function Register() {
       push(`أهلاً بيك في 4Season، ${form.name.split(" ")[0]}!`, "success");
       navigate("/");
     } catch (err) {
-      push(err.response?.data?.detail || "حصل خطأ، جرب تاني", "error");
+      push(getErrorMessage(err, "حصل خطأ، جرب تاني"), "error");
     } finally {
       setLoading(false);
     }

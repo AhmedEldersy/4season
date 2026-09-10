@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/client";
+import api, { getErrorMessage } from "../api/client";
 import { useCartStore } from "../store/cartStore";
 import { useAuthStore } from "../store/authStore";
 import { useToastStore } from "../store/toastStore";
@@ -121,7 +121,7 @@ export default function Checkout() {
       push("تم استلام طلبك بنجاح!", "success");
       navigate(`/orders/${res.data.id}`, { state: { justPlaced: true } });
     } catch (err) {
-      push(err.response?.data?.detail || "حصل خطأ أثناء إرسال الطلب", "error");
+      push(getErrorMessage(err, "حصل خطأ أثناء إرسال الطلب"), "error");
     } finally {
       setLoading(false);
     }
@@ -137,7 +137,7 @@ export default function Checkout() {
           <div className="grid grid-cols-2 gap-3">
             <OrderTypeCard
               label="استلام من المطعم"
-              sublabel="جاهز في 45 دقيقة"
+              sublabel="جاهز في 20-30 دقيقة"
               active={orderType === "PICKUP"}
               onClick={() => setOrderType("PICKUP")}
             />
@@ -152,8 +152,8 @@ export default function Checkout() {
           {orderType === "PICKUP" ? (
             <div className="rounded-xl border border-[var(--line)] bg-[var(--cream-dim)] px-4 py-3.5 text-sm space-y-1">
               <p className="font-semibold">استلام من فرع 4Seasons</p>
-              <p className="text-[var(--ink-soft)]">العنوان: سمنود - الشحاتية - برج المختار، شارع المدارس، بجوار مدرسة الاعدادية بنات</p>
-              <p className="text-[var(--ink-soft)]">مواعيد الاستلام: يوميًا 3م - 3ص</p>
+              <p className="text-[var(--ink-soft)]">العنوان: شارع الجمهورية، وسط البلد</p>
+              <p className="text-[var(--ink-soft)]">مواعيد الاستلام: يوميًا 12م - 12ص</p>
             </div>
           ) : (
             <div className="space-y-3">

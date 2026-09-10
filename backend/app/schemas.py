@@ -15,8 +15,14 @@ PHONE_ERROR = "رقم الموبايل لازم يكون 11 رقم ويبدأ ب
 class RegisterIn(BaseModel):
     name: str
     email: EmailStr
-    phone: str = Field(pattern=PHONE_PATTERN)
+    phone: str
     password: str = Field(min_length=6)
+
+    @model_validator(mode="after")
+    def _valid_phone(self):
+        if not re.match(PHONE_PATTERN, self.phone.strip()):
+            raise ValueError(PHONE_ERROR)
+        return self
 
 
 class LoginIn(BaseModel):
@@ -148,7 +154,7 @@ class OrderItemIn(BaseModel):
 
 class CheckoutIn(BaseModel):
     customer_name: str
-    phone: str = Field(pattern=PHONE_PATTERN)
+    phone: str
     order_type: OrderType
     # Required for DELIVERY, ignored for PICKUP
     delivery_area_id: Optional[str] = None
@@ -160,6 +166,12 @@ class CheckoutIn(BaseModel):
     # Optional client-generated key (e.g. a UUID minted once per checkout
     # attempt) so retried/double-clicked submissions are safely deduplicated.
     idempotency_key: Optional[str] = None
+
+    @model_validator(mode="after")
+    def _valid_phone(self):
+        if not re.match(PHONE_PATTERN, self.phone.strip()):
+            raise ValueError(PHONE_ERROR)
+        return self
 
 
 class OrderItemOut(BaseModel):

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../api/client";
+import api, { getErrorMessage } from "../../api/client";
 import { useAuthStore } from "../../store/authStore";
 import { useToastStore } from "../../store/toastStore";
 import logoIcon from "../../assets/brand/logo-icon-transparent.png";
@@ -25,7 +25,7 @@ export default function AdminLogin() {
       setAuth(res.data.access_token, res.data.user);
       navigate("/admin");
     } catch (err) {
-      push(err.response?.data?.detail || "بيانات الدخول غير صحيحة", "error");
+      push(getErrorMessage(err, "بيانات الدخول غير صحيحة"), "error");
     } finally {
       setLoading(false);
     }

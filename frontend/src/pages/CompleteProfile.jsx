@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import api from "../api/client";
+import api, { getErrorMessage } from "../api/client";
 import { useAuthStore } from "../store/authStore";
 import { useToastStore } from "../store/toastStore";
 import { Field } from "./Login";
@@ -36,7 +36,7 @@ export default function CompleteProfile() {
       push("تم حفظ بياناتك، أهلاً بيك!", "success");
       navigate(location.state?.from?.pathname || "/");
     } catch (err) {
-      push(err.response?.data?.detail || "حصل خطأ، جرب تاني", "error");
+      push(getErrorMessage(err, "حصل خطأ، جرب تاني"), "error");
     } finally {
       setLoading(false);
     }
