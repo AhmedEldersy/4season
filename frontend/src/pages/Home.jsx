@@ -4,6 +4,7 @@ import api from "../api/client";
 import ProductCard from "../components/ProductCard";
 import ProductModal from "../components/ProductModal";
 import logoIcon from "../assets/brand/logo-icon-transparent.png";
+import logoFull from "../assets/brand/logo-full-transparent.png";
 
 export default function Home() {
   const [featured, setFeatured] = useState([]);
@@ -54,9 +55,9 @@ export default function Home() {
               aria-hidden="true"
               className="absolute inset-0 w-full h-full object-contain opacity-[0.08] brightness-0 invert select-none pointer-events-none"
             />
-            <div className="relative w-64 h-64 rounded-full border border-[var(--gold)]/30 grid place-items-center">
-              <div className="w-48 h-48 rounded-full border border-[var(--gold)]/50 bg-white grid place-items-center p-6">
-                <img src={logoIcon} alt="4Seasons" className="w-full h-full object-contain" />
+            <div className="relative w-80 h-80 rounded-full border border-[var(--gold)]/30 grid place-items-center">
+              <div className="w-64 h-64 rounded-full border border-[var(--gold)]/50 bg-white grid place-items-center p-9">
+                <img src={logoFull} alt="4Seasons Restaurant" className="w-full h-full object-contain" />
               </div>
             </div>
             <p className="relative mt-6 font-display text-white text-xl text-center leading-snug">
