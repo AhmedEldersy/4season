@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+:root {
+  --cream: #FAF6EF;
+  --cream-dim: #F1EADC;
+  --ink: #211A14;
+  --ink-soft: #4A4038;
+  --charcoal: #1C1512;
+  --charcoal-2: #241B16;
+  --red: #B3222A;
+  --red-dim: #8f1b22;
+  --gold: #C99A44;
+  --line: #E7DCC8;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Cairo', 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: 'Fraunces', 'Cairo', serif;
+}
+
+::selection { background: var(--gold); color: var(--charcoal); }
+
+/* Custom scrollbar, subtle */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--cream-dim) 25%, #ece2cd 37%, var(--cream-dim) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease infinite;
+}
+@keyframes skeleton-loading {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
