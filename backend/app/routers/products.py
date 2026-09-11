@@ -127,7 +127,11 @@ def upload_image(file: UploadFile = File(...), _admin=Depends(get_current_admin)
         raise HTTPException(status_code=400, detail="نوع الصورة غير مدعوم. استخدم JPG أو PNG أو WEBP.")
 
     ext = {"JPEG": ".jpg", "PNG": ".png", "WEBP": ".webp"}[real_format]
-    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    try:
+        os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    except OSError:
+        settings.UPLOAD_DIR = "/tmp/uploads"
+        os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     filename = f"{uuid.uuid4().hex}{ext}"
     path = os.path.join(settings.UPLOAD_DIR, filename)
     with open(path, "wb") as f:

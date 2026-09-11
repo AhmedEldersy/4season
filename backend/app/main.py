@@ -11,7 +11,17 @@ from app.routers import auth, categories, products, orders, admin, analytics, ws
 
 Base.metadata.create_all(bind=engine)
 
-os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+# Belt-and-suspenders: works whether or not the platform actually exposes a
+# `VERCEL` env var to Python functions (that assumption turned out to be
+# unreliable in practice). If the configured upload directory isn't
+# writable -- as on Vercel's mostly-read-only filesystem -- fall back to
+# /tmp, which is writable on every serverless platform, instead of crashing
+# the whole app on import.
+try:
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+except OSError:
+    settings.UPLOAD_DIR = "/tmp/uploads"
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 
 app = FastAPI(title="4Season API", version="1.0.0")
 

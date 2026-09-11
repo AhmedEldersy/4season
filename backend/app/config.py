@@ -1,5 +1,3 @@
-import os
-
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,7 +16,11 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:5173"
     BACKEND_URL: str = "http://localhost:8000"
 
-    UPLOAD_DIR: str = "/tmp/uploads" if os.environ.get("VERCEL") else "uploads"
+    # Local/uvicorn default. On read-only-filesystem hosts (Vercel
+    # serverless, etc.) main.py catches the resulting OSError at startup
+    # and repoints this to /tmp/uploads automatically -- no platform
+    # detection needed here.
+    UPLOAD_DIR: str = "uploads"
 
     CANCELLATION_WINDOW_MINUTES: int = 10
     DELIVERY_FEE: float = 25
