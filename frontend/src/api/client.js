@@ -8,7 +8,7 @@ import { useAuthStore } from "../store/authStore";
 // VITE_API_URL explicitly when you have a different/staging backend; this
 // is just a safety net, not a replacement.
 export const API_URL =
-  import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "https://api-nine-pi-21.vercel.app/" : "http://localhost:8000");
+  import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "https://api-nine-pi-21.vercel.app" : "http://localhost:8000");
 
 const api = axios.create({ baseURL: API_URL });
 
