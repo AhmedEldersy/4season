@@ -1,7 +1,14 @@
 import axios from "axios";
 import { useAuthStore } from "../store/authStore";
 
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+// Falls back to the real deployed backend in production builds if
+// VITE_API_URL isn't set in Vercel's dashboard -- so the site still works
+// even if that step gets missed. Local `npm run dev` still defaults to
+// localhost so this doesn't break normal local development. Still set
+// VITE_API_URL explicitly when you have a different/staging backend; this
+// is just a safety net, not a replacement.
+export const API_URL =
+  import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "https://4saesonbackend.vercel.app" : "http://localhost:8000");
 
 const api = axios.create({ baseURL: API_URL });
 
