@@ -1,3 +1,10 @@
 node_modules/
 dist/
 .env
+# This repeatedly caused Vercel builds to fail: npm on Windows kept
+# regenerating a lockfile that only listed Windows-only optional native
+# binaries (rolldown/oxlint/tailwindcss), which Linux's npm then refused
+# to install with EBADPLATFORM. vercel.json's installCommand deletes it
+# before every install anyway, so keeping it out of git entirely avoids
+# ever re-introducing the broken, platform-locked version.
+package-lock.json
