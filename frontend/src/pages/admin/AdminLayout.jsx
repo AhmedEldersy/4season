@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import ErrorBoundary from "../../components/ErrorBoundary";
-import { API_URL } from "../../api/client";
+import api, { API_URL } from "../../api/client";
 import { useAuthStore } from "../../store/authStore";
 import { useAdminRealtimeStore } from "../../store/adminRealtimeStore";
 import { useToastStore } from "../../store/toastStore";
@@ -35,12 +35,85 @@ export default function AdminLayout() {
 
   useEffect(() => {
     if (!token) return;
+
+    // Some free hosts (e.g. Vercel serverless functions) can't hold a
+    // persistent WebSocket open -- rather than the admin dashboard just
+    // silently never getting new-order alerts there, fall back to polling
+    // the same data over plain HTTP. Both paths feed the exact same
+    // pushEvent()/toast/chime pipeline that AdminOrders.jsx already
+    // listens to, so nothing downstream needs to know which one is active.
+    let cancelled = false;
+    let pollInterval = null;
+    let usingPolling = false;
+    const seenPendingIds = new Set();
+    let firstPoll = true;
+
+    const notifyNewOrder = (order) => {
+      pushEvent("new_order", order);
+      playNewOrderChime();
+      push(`طلب جديد #${order.order_number} — ${order.total} ج.م`, "success");
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("طلب جديد على 4Season", { body: `#${order.order_number} — ${order.total} ج.م` });
+      }
+    };
+
+    const pollOnce = async () => {
+      try {
+        const res = await api.get("/admin/orders", { params: { status: "PENDING" } });
+        if (cancelled) return;
+        setConnected(true);
+        for (const order of res.data) {
+          if (!seenPendingIds.has(order.id)) {
+            seenPendingIds.add(order.id);
+            // Don't fire chimes for orders that were already pending before
+            // this tab opened -- only genuinely new ones after the first pass.
+            if (!firstPoll) notifyNewOrder(order);
+          }
+        }
+        firstPoll = false;
+      } catch {
+        if (!cancelled) setConnected(false);
+      }
+    };
+
+    const startPolling = () => {
+      if (usingPolling || cancelled) return;
+      usingPolling = true;
+      pollOnce();
+      pollInterval = setInterval(pollOnce, 8000);
+    };
+
     const wsUrl = `${API_URL.replace("http", "ws")}/ws/admin?token=${token}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
-    ws.onopen = () => setConnected(true);
-    ws.onclose = () => setConnected(false);
+    // If the socket hasn't opened within a few seconds (blocked, unsupported
+    // by the host, proxy strips the Upgrade header, etc.), stop waiting and
+    // switch to polling instead of leaving the dashboard silent.
+    const connectTimeout = setTimeout(() => {
+      if (ws.readyState !== WebSocket.OPEN) {
+        ws.close();
+        startPolling();
+      }
+    }, 4000);
+
+    ws.onopen = () => {
+      clearTimeout(connectTimeout);
+      setConnected(true);
+    };
+    ws.onerror = () => {
+      clearTimeout(connectTimeout);
+      ws.close();
+      startPolling();
+    };
+    ws.onclose = () => {
+      if (!usingPolling) {
+        setConnected(false);
+        // Dropped after being open (server restart, free-tier spin-down) --
+        // fall back to polling rather than going dark until a manual refresh.
+        startPolling();
+      }
+    };
     ws.onmessage = (evt) => {
       const msg = JSON.parse(evt.data);
       pushEvent(msg.event, msg.data);
@@ -56,7 +129,12 @@ export default function AdminLayout() {
       }
     };
 
-    return () => ws.close();
+    return () => {
+      cancelled = true;
+      clearTimeout(connectTimeout);
+      if (pollInterval) clearInterval(pollInterval);
+      ws.close();
+    };
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

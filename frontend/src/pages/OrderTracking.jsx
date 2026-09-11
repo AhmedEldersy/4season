@@ -22,22 +22,77 @@ export default function OrderTracking() {
     load().finally(() => setLoading(false));
   }, [id]);
 
-  // Realtime updates via WebSocket, with the page reload above as a reliable fallback.
+  // Realtime updates via WebSocket where the host supports it, with polling
+  // as an automatic fallback (needed on hosts like Vercel serverless
+  // functions that can't hold a persistent WebSocket open) -- and the
+  // initial load() above as a last-resort safety net either way.
   useEffect(() => {
     if (!token) return;
+
+    let cancelled = false;
+    let pollInterval = null;
+    let usingPolling = false;
+    let lastKnownStatus = null;
+
+    const pollOnce = async () => {
+      try {
+        const res = await api.get(`/orders/${id}`);
+        if (cancelled) return;
+        const fresh = res.data;
+        if (lastKnownStatus && fresh.status !== lastKnownStatus) {
+          push(`الطلب الآن: ${statusLabelFor(fresh.status, fresh.order_type)}`, "info");
+        }
+        lastKnownStatus = fresh.status;
+        setOrder(fresh);
+      } catch {
+        /* keep retrying silently -- a transient network blip shouldn't spam errors */
+      }
+    };
+
+    const startPolling = () => {
+      if (usingPolling || cancelled) return;
+      usingPolling = true;
+      pollOnce();
+      pollInterval = setInterval(pollOnce, 6000);
+    };
+
     const wsUrl = `${API_URL.replace("http", "ws")}/ws/orders?token=${token}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
+
+    const connectTimeout = setTimeout(() => {
+      if (ws.readyState !== WebSocket.OPEN) {
+        ws.close();
+        startPolling();
+      }
+    }, 4000);
+
+    ws.onopen = () => clearTimeout(connectTimeout);
+    ws.onerror = () => {
+      clearTimeout(connectTimeout);
+      ws.close();
+      startPolling();
+    };
+    ws.onclose = () => {
+      if (!usingPolling) startPolling();
+    };
     ws.onmessage = (evt) => {
       const msg = JSON.parse(evt.data);
       if (msg.data?.id === id) {
         setOrder(msg.data);
+        lastKnownStatus = msg.data.status;
         if (msg.event === "order_status_changed") {
           push(`الطلب الآن: ${statusLabelFor(msg.data.status, msg.data.order_type)}`, "info");
         }
       }
     };
-    return () => ws.close();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(connectTimeout);
+      if (pollInterval) clearInterval(pollInterval);
+      ws.close();
+    };
   }, [token, id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cancellable =
